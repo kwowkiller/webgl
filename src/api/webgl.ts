@@ -49,6 +49,15 @@ export default class WebGL {
       y: y / (height / 2),
     };
   }
+  // 判断鼠标离某一点很近，可以制造吸附效果
+  approach(point: Point, event: React.MouseEvent): Point | undefined {
+    const mouse = this.coordinate(event);
+    // 有一些精度问题
+    const [a, b] = [Math.abs(point.x - mouse.x), Math.abs(point.y - mouse.y)];
+    if ([a, b].every((item) => item <= 0.02)) {
+      return point;
+    }
+  }
 }
 
 export interface Point {

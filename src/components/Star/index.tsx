@@ -1,9 +1,9 @@
 import React, { useEffect, useRef } from "react";
 import { Color } from "three";
-import WebGL, { Point } from "./webgl";
-import vert from "./vert/vertex.vert";
-import frag from "./vert/fragment.frag";
-import { Compose, Track } from "./anime";
+import WebGL, { Point } from "../../api/webgl";
+import vert from "./vertex.vert";
+import frag from "./fragment.frag";
+import { Compose, Track } from "../../api/anime";
 
 interface Star extends Point {
   color: Color;
@@ -16,6 +16,8 @@ const compose = new Compose();
 const stars: Star[] = [];
 
 function renderCanvas() {
+  webgl.ctx.clearColor(0, 0, 0, 0);
+  webgl.ctx.clear(webgl.ctx.COLOR_BUFFER_BIT);
   stars.forEach(({ x, y, size, color, alpha }) => {
     const myColor = webgl.ctx.getUniformLocation(webgl.program!, "my_Color");
     webgl.ctx.uniform4f(myColor, color.r, color.g, color.b, alpha);
@@ -47,20 +49,29 @@ function App() {
     //   webgl.ctx.clear(webgl.ctx.COLOR_BUFFER_BIT);
     //   requestAnimationFrame(changeColor);
     // })();
-    (function render(){
+    (function render() {
       compose.update(new Date().getTime());
       renderCanvas();
       requestAnimationFrame(render);
-    })()
+    })();
   }, []);
   return (
     <canvas
+      style={{
+        backgroundImage:
+          "url(https://img.1ppt.com/uploads/allimg/2009/1_200915192356_1.JPG)",
+        backgroundSize: "cover",
+      }}
       ref={ref}
       onClick={(event) => {
         const star: Star = {
           ...webgl.coordinate(event),
           size: Math.random() * 20 + 5,
-          color: new Color(`rgb(${Math.ceil(Math.random() * 255)},${Math.ceil(Math.random() * 255)},0)`),
+          color: new Color(
+            `rgb(${Math.ceil(Math.random() * 255)},${Math.ceil(
+              Math.random() * 255
+            )},0)`
+          ),
           alpha: 0,
         };
         stars.push(star);

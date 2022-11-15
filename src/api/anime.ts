@@ -38,7 +38,8 @@ export class Track {
     // 更新Track的时间t减去Track的start时间得到时间
     let time = t - start;
     if (repeat) {
-      
+      // 重复动画，用time除以duration，取余数，比如time到了2010了，除以duration则余10，从这里重新开始计时
+      time = time % duration;
     }
     framesMap.forEach((frames, key) => {
       const lastIndex = frames.length - 1;

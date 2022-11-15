@@ -16,11 +16,6 @@ body {
   align-items: center;
 }
 
-canvas{
-  background-image: url(https://img.1ppt.com/uploads/allimg/2009/1_200915192356_1.JPG);
-  background-size: cover;
-}
-
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
