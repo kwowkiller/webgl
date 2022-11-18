@@ -1,6 +1,7 @@
 // 片元着色器
 precision mediump float;
 uniform vec4 my_Color;
+// mac系统discard画线有问题会不显示线段，这个额外判断下，如果是画线就不discard
 uniform bool is_Point;
 
 void main() {

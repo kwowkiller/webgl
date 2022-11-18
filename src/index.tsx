@@ -3,6 +3,8 @@ import ReactDOM from "react-dom/client";
 import "./index.css";
 import Star from "./components/Star";
 import Triangle from "./components/Triangle";
+import Shape from "./components/Shape";
+import Rorate from "./components/Rorate";
 import reportWebVitals from "./reportWebVitals";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
@@ -14,6 +16,8 @@ root.render(
     <Routes>
       <Route path="/star" element={<Star />} />
       <Route path="/triangle" element={<Triangle />} />
+      <Route path="/shape" element={<Shape />} />
+      <Route path="/rorate" element={<Rorate />} />
     </Routes>
   </BrowserRouter>
 );

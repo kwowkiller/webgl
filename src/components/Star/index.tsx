@@ -1,9 +1,10 @@
 import React, { useEffect, useRef } from "react";
 import { Color } from "three";
-import WebGL, { Point } from "../../api/webgl";
+import WebGL from "../../api/webgl";
 import vert from "./vertex.vert";
 import frag from "./fragment.frag";
 import { Compose, Track } from "../../api/anime";
+import { Point } from "../../api/coordinate";
 
 interface Star extends Point {
   color: Color;
@@ -36,8 +37,6 @@ function App() {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     const canvas = ref.current!;
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
     webgl = new WebGL(canvas);
     webgl.initShaders(vert, frag);
     // const color = new Color("rgba(255,0,0,1)");
@@ -65,7 +64,7 @@ function App() {
       ref={ref}
       onClick={(event) => {
         const star: Star = {
-          ...webgl.coordinate(event),
+          ...webgl.coordinate.mouseToWebGL(event),
           size: Math.random() * 20 + 5,
           color: new Color(
             `rgb(${Math.ceil(Math.random() * 255)},${Math.ceil(

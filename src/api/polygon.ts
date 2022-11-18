@@ -1,4 +1,4 @@
-type PolygonMode = "POINTS" | "LINE_STRIP";
+type PolygonMode = "POINTS" | "LINE_STRIP" | "TRIANGLES";
 
 export default class Polygon {
   gl: WebGLRenderingContext;
@@ -9,7 +9,7 @@ export default class Polygon {
   // 为了方便操作顶点，使用二维数组
   vertices: number[][] = [];
   attr: string;
-  // 为了画圆点做的额外处理
+  // 为了画圆点做的额外处理，兼容mac系统的着色器
   private isPoint: WebGLUniformLocation | null;
   constructor(params: {
     gl: WebGLRenderingContext;

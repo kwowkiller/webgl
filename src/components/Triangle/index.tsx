@@ -1,8 +1,9 @@
 import React, { useEffect, useRef } from "react";
-import WebGL, { Point } from "../../api/webgl";
+import WebGL from "../../api/webgl";
 import vert from "./vertex.vert";
 import frag from "./fragment.frag";
 import Polygon from "../../api/polygon";
+import { Point } from "../../api/coordinate";
 
 let webgl: WebGL;
 // 多边形容器
@@ -27,7 +28,10 @@ function getAccessPoint(event: React.MouseEvent) {
     for (let j = 0; j < vertices.length; j++) {
       // 过滤掉当正在绘制的多边形的最后一个点
       if (polygon === container[i] && j === vertices.length - 1) continue;
-      access = webgl.approach({ x: vertices[j][0], y: vertices[j][1] }, event);
+      access = webgl.coordinate.mouseApproach(
+        { x: vertices[j][0], y: vertices[j][1] },
+        event
+      );
       if (access) break;
     }
   }
@@ -38,8 +42,6 @@ function App() {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     const canvas = ref.current!;
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
     webgl = new WebGL(canvas);
     webgl.initShaders(vert, frag);
     // (function render() {
@@ -59,7 +61,9 @@ function App() {
           polygon?.vertices.pop();
           polygon = null;
         } else {
-          const { x, y } = webgl.coordinate(event);
+          // 如果离某个点很近，直接使用该点
+          const { x, y } =
+            getAccessPoint(event) || webgl.coordinate.mouseToWebGL(event);
           if (!polygon) {
             polygon = new Polygon({
               gl: webgl.ctx,
@@ -85,7 +89,7 @@ function App() {
         canvas.style.cursor = access ? "pointer" : "default";
         if (!polygon) return;
         // 如果靠近某个点，直接连到这个点
-        const { x, y } = access || webgl.coordinate(event);
+        const { x, y } = access || webgl.coordinate.mouseToWebGL(event);
         polygon.vertices[polygon.vertices.length - 1] = [x, y];
         draw();
       }}
