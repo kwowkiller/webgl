@@ -65,4 +65,18 @@ export default class Shape {
     // 如果没有找到三角形，就从下一个点开始遍历；如果找到了，因为i2已经被删除了，所以实际是从找到的三角形的第三个点开始遍历
     return this.resolve(b);
   }
+
+  // 将一系列的点按轴方向规则排列的点拼成三角形构成面
+  combine(size: number): Triangle[] {
+    const { points } = this;
+    const triangles: Triangle[] = [];
+    for (let i = 0; i < points.length; i += 1) {
+      // 第一行和每一行的最后一个不处理
+      if (i < size || (i + 1) % size === 0) continue;
+      // 从第二行开始，每个点构成两个三角形
+      triangles.push([points[i], points[i - size], points[i - size + 1]]);
+      triangles.push([points[i], points[i + 1], points[i - size + 1]]);
+    }
+    return triangles;
+  }
 }

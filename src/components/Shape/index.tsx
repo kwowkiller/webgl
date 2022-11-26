@@ -19,14 +19,18 @@ function square(width: number) {
   const polygon = new Polygon({
     gl: webgl.ctx,
     program: webgl.program!,
-    attr: "my_Position",
+    attrs: {
+      my_Position: {
+        size: 2,
+      },
+    },
     modes: ["POINTS", "LINE_STRIP"],
     // 按2-3-4-1象限的顺序
     vertices: [2, 3, 4, 1, 2]
       .map((q) => coordinate.quadrantChange(point, q))
       .map((p) => [p.x, p.y]),
   });
-  polygon.draw();
+  polygon.draw(false);
 }
 
 // 画一个复杂图案，一个以原点为中心的螺旋正方形
@@ -51,11 +55,15 @@ async function spiral() {
   const polygon = new Polygon({
     gl: webgl.ctx,
     program: webgl.program!,
-    attr: "my_Position",
+    attrs: {
+      my_Position: {
+        size: 2,
+      },
+    },
     modes: ["POINTS", "LINE_STRIP"],
     vertices: points.map((p) => [p.x, p.y]),
   });
-  polygon.draw();
+  polygon.draw(false);
   //
   polygon.vertices = [];
   const triangles: Point[] = [];
@@ -75,7 +83,7 @@ async function spiral() {
     );
     polygon.vertices = triangles.slice(i, i + 3).map((p) => [p.x, p.y]);
     // polygon.vertices.push(...triangles.slice(i, i + 3).map((p) => [p.x, p.y]));
-    polygon.draw();
+    polygon.draw(false);
     // await new Promise<void>((resolve) => setTimeout(() => resolve(), 3000));
   }
 }

@@ -31,7 +31,11 @@ function rotateTriangle() {
   const polygon = new Polygon({
     gl,
     program: webgl.program!,
-    attr: "my_Position",
+    attrs: {
+      my_Position: {
+        size: 2,
+      },
+    },
     modes: ["TRIANGLES"],
   });
   const { w, h } = webgl.coordinate.px2gl({ w: radius, h: radius });
@@ -42,7 +46,7 @@ function rotateTriangle() {
       h * Math.sin(degree + index * ((Math.PI * 2) / 3)) * scale,
     ];
   });
-  polygon.draw();
+  polygon.draw(false);
 }
 let shrink = true;
 function App() {

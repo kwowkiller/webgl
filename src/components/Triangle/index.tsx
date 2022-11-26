@@ -14,7 +14,7 @@ let polygon: Polygon | null = null;
 // 绘制容器内的所有多边形
 function draw() {
   container.forEach((poly) => {
-    poly.draw();
+    poly.draw(false);
   });
 }
 
@@ -68,7 +68,11 @@ function App() {
             polygon = new Polygon({
               gl: webgl.ctx,
               program: webgl.program!,
-              attr: "my_Position",
+              attrs: {
+                my_Position: {
+                  size: 2,
+                },
+              },
               modes: ["POINTS", "LINE_STRIP"],
               // 初次点击时创建两个点，一个固定点，一个随鼠标移动点
               vertices: [
