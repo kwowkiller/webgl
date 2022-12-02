@@ -8,7 +8,53 @@ import Polygon from "../../api/polygon";
 let webgl: WebGL;
 let polygon: Polygon;
 let theta = 0;
-const width = 0.3;
+
+//数据源
+// prettier-ignore
+const source = new Float32Array([
+  // back
+  -0.5, -0.5, -0.5, 0, 0,
+  -0.5, 0.5, -0.5, 0, 0.5,
+  0.5, -0.5, -0.5, 0.25, 0,
+  -0.5, 0.5, -0.5, 0, 0.5,
+  0.5, 0.5, -0.5, 0.25, 0.5,
+  0.5, -0.5, -0.5, 0.25, 0,
+  // front
+  -0.5, -0.5, 0.5, 0.25, 0,
+  0.5, -0.5, 0.5, 0.5, 0,
+  -0.5, 0.5, 0.5, 0.25, 0.5,
+  -0.5, 0.5, 0.5, 0.25, 0.5,
+  0.5, -0.5, 0.5, 0.5, 0,
+  0.5, 0.5, 0.5, 0.5, 0.5,
+  // top
+  -0.5, 0.5, -0.5, 0.5, 0,
+  -0.5, 0.5, 0.5, 0.5, 0.5,
+  0.5, 0.5, -0.5, 0.75, 0,
+  -0.5, 0.5, 0.5, 0.5, 0.5,
+  0.5, 0.5, 0.5, 0.75, 0.5,
+  0.5, 0.5, -0.5, 0.75, 0,
+  // bottom
+  -0.5, -0.5, -0.5, 0, 0.5,
+  0.5, -0.5, -0.5, 0.25, 0.5,
+  -0.5, -0.5, 0.5, 0, 1,
+  -0.5, -0.5, 0.5, 0, 1,
+  0.5, -0.5, -0.5, 0.25, 0.5,
+  0.5, -0.5, 0.5, 0.25, 1,
+  // left
+  -0.5, -0.5, -0.5, 0.25, 0.5,
+  -0.5, -0.5, 0.5, 0.25, 1,
+  -0.5, 0.5, -0.5, 0.5, 0.5,
+  -0.5, -0.5, 0.5, 0.25, 1,
+  -0.5, 0.5, 0.5, 0.5, 1,
+  -0.5, 0.5, -0.5, 0.5, 0.5,
+  // right
+  0.5, -0.5, -0.5, 0.5, 0.5,
+  0.5, 0.5, -0.5, 0.75, 0.5,
+  0.5, -0.5, 0.5, 0.5, 1,
+  0.5, -0.5, 0.5, 0.5, 1,
+  0.5, 0.5, -0.5, 0.75, 0.5,
+  0.5, 0.5, 0.5, 0.75, 1,
+]);
 
 function App() {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -19,47 +65,16 @@ function App() {
     u: 0,
     v: 0,
     w: 0,
+    r: 0,
+    s: 1,
+    t: 0,
   });
   useEffect(() => {
     const canvas = ref.current!;
     webgl = new WebGL(canvas, 600);
     webgl.initShaders(vert, frag);
-    // webgl.ctx.enable(webgl.ctx.CULL_FACE);
-    // webgl.ctx.enable(webgl.ctx.DEPTH_TEST);
-
-    const front = [
-      [-width, width, width],
-      [-width, -width, width],
-      [width, width, width],
-      [width, -width, width],
-      [-width, width, width],
-      [width, width, width],
-      [-width, -width, width],
-      [width, -width, width],
-    ];
-    const back = front.map(([x, y, z]) => [x, y, -z]);
-    const top = [
-      [-width, width, width],
-      [width, width, width],
-      [-width, width, -width],
-      [width, width, -width],
-      [-width, width, width],
-      [-width, width, -width],
-      [width, width, width],
-      [width, width, -width],
-    ];
-    const bottom = top.map(([x, y, z]) => [x, -y, z]);
-    const left = [
-      [-width, width, width],
-      [-width, -width, width],
-      [-width, width, -width],
-      [-width, -width, -width],
-      [-width, width, width],
-      [-width, width, -width],
-      [-width, -width, width],
-      [-width, -width, -width],
-    ];
-    const right = left.map(([x, y, z]) => [-x, y, z]);
+    webgl.ctx.enable(webgl.ctx.CULL_FACE);
+    webgl.ctx.enable(webgl.ctx.DEPTH_TEST);
     polygon = new Polygon({
       gl: webgl.ctx,
       program: webgl.program!,
@@ -67,42 +82,68 @@ function App() {
         my_Position: {
           size: 3,
         },
+        my_Pin: {
+          size: 2,
+          offset: 3,
+        },
       },
-      vertices: [...front, ...back, ...top, ...bottom, ...left, ...right],
-      modes: ["LINES"],
+      data: source,
+      modes: ["TRIANGLES"],
     });
 
-    (function anime() {
-      // theta += 0.01;
-      const modelMatrix = polygon.gl.getUniformLocation(
-        webgl.program!,
-        "my_Model"
-      );
-      polygon.gl.uniformMatrix4fv(
-        modelMatrix,
-        false,
-        new Matrix4().makeRotationY(theta).elements
-        // new Matrix4().elements,
-      );
-      polygon.draw();
-      // requestAnimationFrame(anime);
-    })();
+    const image = new Image();
+    image.src = "/assets/mf2.jpg";
+    image.onload = function () {
+      const gl = polygon.gl;
+      //对纹理图像垂直翻转
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+      //纹理单元
+      gl.activeTexture(gl.TEXTURE0);
+      //纹理对象
+      const texture = gl.createTexture();
+      //向target 绑定纹理数据
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      //配置纹理图像
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
+      //配置纹理参数
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      // 非2次幂大小图像处理
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.uniform1i(gl.getUniformLocation(polygon.program, "u_Sampler"), 0);
+
+      (function anime() {
+        // theta += 0.01;
+        const modelMatrix = polygon.gl.getUniformLocation(
+          webgl.program!,
+          "my_Model"
+        );
+        polygon.gl.uniformMatrix4fv(
+          modelMatrix,
+          false,
+          new Matrix4().makeRotationY(theta).elements
+          // new Matrix4().elements,
+        );
+        polygon.draw(false);
+        // requestAnimationFrame(anime);
+      })();
+    };
   }, []);
   useEffect(() => {
     const viewMatrix = polygon.gl.getUniformLocation(
       webgl.program!,
       "my_Camera"
     );
-    const { x, y, z, u, v, w } = camera;
+    const { x, y, z, u, v, w, r, s, t } = camera;
     polygon.gl.uniformMatrix4fv(
       viewMatrix,
       false,
-      getViewMatrix(
+      new Matrix4().lookAt(
         new Vector3(x, y, z),
         // 目标点，0,0,0就是原点，就是这个正方体的中心
         new Vector3(u, v, w),
-        new Vector3(0, 1, 0)
-      )
+        new Vector3(r, s, t)
+      ).elements
       // new Matrix4().elements,
     );
     polygon.draw();
@@ -134,59 +175,6 @@ function App() {
       </div>
     </>
   );
-}
-/**
- * 摄像机通过一个矩阵变换到原点，再用这个矩阵的逆乘以观察物，就得到了摄像机变化的效果
- * @param e 视点
- * @param t 目标点
- * @param u 辅助向量，用来求上方向
- * @returns 摄像机的正交旋转矩阵*位移矩阵
- */
-function getViewMatrix(e: Vector3, t: Vector3, u: Vector3) {
-  //基向量c，视线
-  const c = new Vector3().subVectors(e, t).normalize();
-  //基向量a，视线和上方向的垂线
-  const a = new Vector3().crossVectors(u, c).normalize();
-  //基向量b，修正上方向
-  const b = new Vector3().crossVectors(c, a).normalize();
-  //正交旋转矩阵
-  // prettier-ignore
-  const mr = new Matrix4().set(
-    a.x, a.y, a.z, 0,
-    b.x, b.y, b.z, 0,
-    -c.x, -c.y, -c.z, 0,
-    0, 0, 0, 1
-  )
-  //位移矩阵
-  // prettier-ignore
-  const mt = new Matrix4().set(
-    1, 0, 0, -e.x,
-    0, 1, 0, -e.y,
-    0, 0, 1, -e.z,
-    0, 0, 0, 1
-  )
-  return mr.multiply(mt).elements;
-}
-// getViewMatrix的简化版
-function lookAt(e: Vector3, t: Vector3, u: Vector3) {
-  //目标点到视点的向量
-  const d = new Vector3().subVectors(e, t);
-  d.normalize();
-  //d和上方向的垂线
-  const a = new Vector3().crossVectors(u, d);
-  a.normalize();
-  //d和a的垂线
-  const b = new Vector3().crossVectors(d, a);
-  b.normalize();
-  //c 基于d取反
-  const c = new Vector3(-d.x, -d.y, -d.z);
-  // prettier-ignore
-  return [
-     a.x, b.x, c.x, 0,
-     a.y, b.y, c.y, 0,
-     a.z, b.z, c.z, 0,
-     0, 0, 0, 1
-   ]
 }
 
 export default App;

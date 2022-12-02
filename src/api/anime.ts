@@ -26,14 +26,25 @@ export class Track {
   // 动画持续时间
   duration = 2000;
   // 重复动画
-  repeat = true;
+  repeat = false;
   // 对象关键帧，比如对象target:{x,y,size...}，定义每帧的size大小，map的key为size，value为Frames
   framesMap = new Map<string, Frames>();
+  private end = false;
+  onEnd = () => {};
   constructor(target: { [key: string]: any }) {
     this.target = target;
   }
 
+  // 重新开始
+  restart() {
+    this.end = false;
+    this.start = new Date().getTime() + 100;
+  }
+
   update(t: number) {
+    if (this.end) {
+      return;
+    }
     const { start, target, duration, repeat, framesMap } = this;
     // 更新Track的时间t减去Track的start时间得到时间
     let time = t - start;
@@ -49,6 +60,10 @@ export class Track {
       } else if (time > frames[lastIndex][0]) {
         // 如果时间差大于最后一帧的时间，则改变target的值为最后一帧的值
         target[key] = frames[lastIndex][1];
+        if (!repeat) {
+          this.end = true;
+          this.onEnd();
+        }
       } else {
         // 如果时间差在第一帧到最后一帧之间，则用补间动画来给target插值
         target[key] = tween(time, frames);

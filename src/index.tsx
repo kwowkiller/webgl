@@ -10,6 +10,7 @@ import Cube from "./components/Cube";
 import Wave from "./components/Wave";
 import Colors from "./components/Colors";
 import Texture from "./components/Texture";
+import Blend from "./components/Blend";
 import reportWebVitals from "./reportWebVitals";
 import { BrowserRouter, Link, Route, Routes } from "react-router-dom";
 
@@ -26,6 +27,7 @@ const pages: { path: string; element: JSX.Element }[] = [
   { path: "/wave", element: <Wave /> },
   { path: "/colors", element: <Colors /> },
   { path: "/texture", element: <Texture /> },
+  { path: "/blend", element: <Blend /> },
 ];
 root.render(
   <BrowserRouter>

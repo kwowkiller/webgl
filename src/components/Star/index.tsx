@@ -76,6 +76,7 @@ function App() {
         stars.push(star);
 
         const track = new Track(star);
+        track.repeat = true;
         track.framesMap = new Map([
           [
             "alpha",

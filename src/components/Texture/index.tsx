@@ -44,23 +44,12 @@ function App() {
     // image.src = "/assets/256.jpeg";
     image.src = "/assets/1080.jpeg";
     image.onload = function () {
-      const gl = polygon.gl;
-      //对纹理图像垂直翻转
-      // gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
-      //纹理单元
-      gl.activeTexture(gl.TEXTURE0);
-      //纹理对象
-      const texture = gl.createTexture();
-      //向target 绑定纹理数据
-      gl.bindTexture(gl.TEXTURE_2D, texture);
-      //配置纹理图像
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
-      //配置纹理参数
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-      // 非2次幂大小图像处理
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-      gl.uniform1i(gl.getUniformLocation(polygon.program, "u_Sampler"), 0);
+      polygon.textures.push({
+        image,
+        uniform: "u_Sampler",
+        wrapS: webgl.ctx.CLAMP_TO_EDGE,
+        wrapT: webgl.ctx.CLAMP_TO_EDGE,
+      });
       polygon.draw();
     };
   }, []);
