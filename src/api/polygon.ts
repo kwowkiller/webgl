@@ -26,6 +26,8 @@ export default class Polygon {
   modes: PolygonMode[];
   // 为了方便操作顶点，使用二维数组，也可以直接传入原数据data
   vertices: number[][] = [];
+  // 顶点顺序索引
+  indices?: Uint8Array;
   attrs: Attrs;
   uniforms: Uniforms;
   textures: {
@@ -36,13 +38,18 @@ export default class Polygon {
     wrapT?: number;
     uniform: string;
   }[] = [];
+
   private data: Float32Array;
-  // 为了画圆点做的额外处理，兼容mac系统的着色器
-  private isPoint: WebGLUniformLocation | null;
+  // 顶点缓存
+  private verticesBuffer?: WebGLBuffer;
+  // 顶点索引缓存
+  private indicesBuffer?: WebGLBuffer;
+
   constructor(params: {
     gl: WebGLRenderingContext;
     program: WebGLProgram;
     vertices?: number[][];
+    indices?: Uint8Array;
     data?: Float32Array;
     attrs: Attrs;
     uniforms?: Uniforms;
@@ -53,6 +60,7 @@ export default class Polygon {
       program,
       modes = ["POINTS"],
       vertices = [],
+      indices,
       data,
       attrs,
       uniforms = {},
@@ -68,7 +76,7 @@ export default class Polygon {
       this.vertices = vertices;
       this.data = new Float32Array(this.vertices.flat());
     }
-    this.isPoint = gl.getUniformLocation(program, "is_Point");
+    this.indices = indices;
     this.init();
   }
 
@@ -83,10 +91,20 @@ export default class Polygon {
       gl,
       program,
       attrs,
+      indices,
       data: { BYTES_PER_ELEMENT },
     } = this;
-    const buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.useProgram(this.program);
+    if (!this.verticesBuffer) {
+      this.verticesBuffer = gl.createBuffer()!;
+    }
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.verticesBuffer);
+    if (indices) {
+      if (!this.indicesBuffer) {
+        this.indicesBuffer = gl.createBuffer()!;
+      }
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indicesBuffer);
+    }
     // this.bufferData();
     for (const key in attrs) {
       const { size, offset = 0 } = attrs[key];
@@ -104,10 +122,13 @@ export default class Polygon {
   }
 
   private bufferData() {
-    const { gl } = this;
+    const { gl, vertices, indices } = this;
     // 更新data数组
-    if (this.vertices.length > 0) {
-      this.data = new Float32Array(this.vertices.flat());
+    if (vertices.length > 0) {
+      this.data = new Float32Array(vertices.flat());
+    }
+    if (indices && indices.length > 0) {
+      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
     }
     gl.bufferData(gl.ARRAY_BUFFER, this.data, gl.STATIC_DRAW);
   }
@@ -154,8 +175,9 @@ export default class Polygon {
     });
   }
 
-  draw(clear = true) {
-    const { gl, modes } = this;
+  draw(clear = false) {
+    const { gl, modes, indices } = this;
+    this.init();
     if (clear) {
       gl.clear(gl.COLOR_BUFFER_BIT);
     }
@@ -163,9 +185,11 @@ export default class Polygon {
     this.activeTexture();
     this.setUniform();
     for (let mode of modes) {
-      // 为了画圆点做一些特殊处理
-      gl.uniform1f(this.isPoint, mode === "POINTS" ? 1 : 0);
-      gl.drawArrays(gl[mode], 0, this.data.length / this.size);
+      if (indices && indices.length > 0) {
+        gl.drawElements(gl[mode], indices.length, gl.UNSIGNED_BYTE, 0);
+      } else {
+        gl.drawArrays(gl[mode], 0, this.data.length / this.size);
+      }
     }
   }
 }

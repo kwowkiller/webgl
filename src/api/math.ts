@@ -15,3 +15,13 @@ export function linear(ax: number, ay: number, bx: number, by: number) {
     return k * x + b;
   };
 }
+
+// 角度转弧度
+export function d2r(d: number) {
+  return (d / 180) * Math.PI;
+}
+
+// 弧度转角度
+export function r2d(r: number) {
+  return (r / Math.PI) * 180;
+}

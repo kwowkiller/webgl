@@ -7,6 +7,7 @@ import { Point } from "../../api/coordinate";
 import Shape from "../../api/shape";
 
 let webgl: WebGL;
+let program: WebGLProgram;
 
 // 画一个以原点为中心，width为宽的正方形，width为px，绝对大小
 function square(width: number) {
@@ -14,14 +15,20 @@ function square(width: number) {
   // 处理px单位，转化为webgl坐标，webgl的坐标是-1到1，也就是2个单位长度
   // 因为是以原点为中心，即左边一半宽度，右边一半宽度，加起来就是width的宽度
   // 下面代码等同于 (width / (coordinate.w / 2)) / 2，得到的其实是正方形一半的宽度
-  const half = width / coordinate.w ;
+  const half = width / coordinate.w;
   const point: Point = { x: half, y: coordinate.ratio * half };
   const polygon = new Polygon({
     gl: webgl.ctx,
-    program: webgl.program!,
+    program: program,
     attrs: {
       my_Position: {
         size: 2,
+      },
+    },
+    uniforms: {
+      my_Color: {
+        func: "uniform4f",
+        args: [0, 1, 0, 1],
       },
     },
     modes: ["POINTS", "LINE_STRIP"],
@@ -54,7 +61,7 @@ async function spiral() {
   ].map(([x, y]) => ({ x, y: y * webgl.coordinate.ratio }));
   const polygon = new Polygon({
     gl: webgl.ctx,
-    program: webgl.program!,
+    program: program,
     attrs: {
       my_Position: {
         size: 2,
@@ -73,7 +80,7 @@ async function spiral() {
   // console.log(triangles);
   polygon.modes = ["TRIANGLES"];
   for (let i = 0; i < triangles.length; i += 3) {
-    const myColor = webgl.ctx.getUniformLocation(webgl.program!, "my_Color");
+    const myColor = webgl.ctx.getUniformLocation(program, "my_Color");
     webgl.ctx.uniform4f(
       myColor,
       Math.random(),
@@ -93,9 +100,7 @@ function App() {
   useEffect(() => {
     const canvas = ref.current!;
     webgl = new WebGL(canvas);
-    webgl.initShaders(vert, frag);
-    const myColor = webgl.ctx.getUniformLocation(webgl.program!, "my_Color");
-    webgl.ctx.uniform4f(myColor, 1, 0, 0, 1);
+    program = webgl.createProgram(vert, frag);
     square(600);
     spiral().then();
   }, []);

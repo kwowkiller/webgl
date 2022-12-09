@@ -6,6 +6,7 @@ import frag from "./fragment.frag";
 import Polygon from "../../api/polygon";
 
 let webgl: WebGL;
+let program: WebGLProgram;
 let polygon: Polygon;
 let theta = 0;
 
@@ -72,12 +73,12 @@ function App() {
   useEffect(() => {
     const canvas = ref.current!;
     webgl = new WebGL(canvas, 600);
-    webgl.initShaders(vert, frag);
+    program = webgl.createProgram(vert, frag);
     webgl.ctx.enable(webgl.ctx.CULL_FACE);
     webgl.ctx.enable(webgl.ctx.DEPTH_TEST);
     polygon = new Polygon({
       gl: webgl.ctx,
-      program: webgl.program!,
+      program: program,
       attrs: {
         my_Position: {
           size: 3,
@@ -115,7 +116,7 @@ function App() {
       (function anime() {
         // theta += 0.01;
         const modelMatrix = polygon.gl.getUniformLocation(
-          webgl.program!,
+         program,
           "my_Model"
         );
         polygon.gl.uniformMatrix4fv(
@@ -131,7 +132,7 @@ function App() {
   }, []);
   useEffect(() => {
     const viewMatrix = polygon.gl.getUniformLocation(
-      webgl.program!,
+     program,
       "my_Camera"
     );
     const { x, y, z, u, v, w, r, s, t } = camera;

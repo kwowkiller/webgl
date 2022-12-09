@@ -6,6 +6,7 @@ import Polygon from "../../api/polygon";
 import { Track } from "../../api/anime";
 
 let webgl: WebGL;
+let program: WebGLProgram;
 // prettier-ignore
 const source = new Float32Array([
   -0.4, 0.8, 0, 1,
@@ -19,10 +20,10 @@ function App() {
   useEffect(() => {
     const canvas = ref.current!;
     webgl = new WebGL(canvas);
-    webgl.initShaders(vert, frag);
+    program = webgl.createProgram(vert, frag);
     const polygon = new Polygon({
       gl: webgl.ctx,
-      program: webgl.program!,
+      program: program,
       attrs: {
         my_Position: {
           size: 2,

@@ -13,6 +13,7 @@ interface Star extends Point {
 }
 
 let webgl: WebGL;
+let program: WebGLProgram;
 const compose = new Compose();
 const stars: Star[] = [];
 
@@ -20,14 +21,11 @@ function renderCanvas() {
   webgl.ctx.clearColor(0, 0, 0, 0);
   webgl.ctx.clear(webgl.ctx.COLOR_BUFFER_BIT);
   stars.forEach(({ x, y, size, color, alpha }) => {
-    const myColor = webgl.ctx.getUniformLocation(webgl.program!, "my_Color");
+    const myColor = webgl.ctx.getUniformLocation(program, "my_Color");
     webgl.ctx.uniform4f(myColor, color.r, color.g, color.b, alpha);
-    const mySize = webgl.ctx.getAttribLocation(webgl.program!, "my_Size");
+    const mySize = webgl.ctx.getAttribLocation(program, "my_Size");
     webgl.ctx.vertexAttrib1f(mySize, size);
-    const myPosition = webgl.ctx.getAttribLocation(
-      webgl.program!,
-      "my_Position"
-    );
+    const myPosition = webgl.ctx.getAttribLocation(program, "my_Position");
     webgl.ctx.vertexAttrib2f(myPosition, x, y);
     webgl.ctx.drawArrays(webgl.ctx.POINTS, 0, 1);
   });
@@ -38,7 +36,8 @@ function App() {
   useEffect(() => {
     const canvas = ref.current!;
     webgl = new WebGL(canvas);
-    webgl.initShaders(vert, frag);
+    program = webgl.createProgram(vert, frag);
+    webgl.ctx.useProgram(program);
     // const color = new Color("rgba(255,0,0,1)");
     // webgl.ctx.clearColor(color.r, color.g, color.b, 1);
     // webgl.ctx.clear(webgl.ctx.COLOR_BUFFER_BIT);
@@ -63,8 +62,10 @@ function App() {
       }}
       ref={ref}
       onClick={(event) => {
+        const { x, y } = webgl.coordinate.mouseToWebGL(event);
         const star: Star = {
-          ...webgl.coordinate.mouseToWebGL(event),
+          x,
+          y,
           size: Math.random() * 20 + 5,
           color: new Color(
             `rgb(${Math.ceil(Math.random() * 255)},${Math.ceil(

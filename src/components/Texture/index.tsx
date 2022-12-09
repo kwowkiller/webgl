@@ -5,6 +5,7 @@ import frag from "./fragment.frag";
 import Polygon from "../../api/polygon";
 
 let webgl: WebGL;
+let program: WebGLProgram;
 
 const maxV = 1;
 const maxU = 1;
@@ -12,7 +13,7 @@ const maxU = 1;
 const square = [
   [-0.5, 0.5, 0, 0],
   [-0.5, -0.5, 0, maxV],
-  [0.5, 0.5, maxU, 0.0],
+  [0.5, 0.5, maxU, 0],
   [0.5, -0.5, maxU, maxV],
 ];
 
@@ -21,10 +22,10 @@ function App() {
   useEffect(() => {
     const canvas = ref.current!;
     webgl = new WebGL(canvas);
-    webgl.initShaders(vert, frag);
+    program = webgl.createProgram(vert, frag);
     const polygon = new Polygon({
       gl: webgl.ctx,
-      program: webgl.program!,
+      program: program,
       attrs: {
         my_Position: {
           size: 2,

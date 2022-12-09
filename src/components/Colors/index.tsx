@@ -5,6 +5,7 @@ import frag from "./fragment.frag";
 import Polygon from "../../api/polygon";
 
 let webgl: WebGL;
+let program: WebGLProgram;
 let polygon: Polygon;
 let thread = 0;
 
@@ -23,10 +24,10 @@ function App() {
   useEffect(() => {
     const canvas = ref.current!;
     webgl = new WebGL(canvas, 300);
-    webgl.initShaders(vert, frag);
+    program = webgl.createProgram(vert, frag);
     polygon = new Polygon({
       gl: webgl.ctx,
-      program: webgl.program!,
+      program: program,
       attrs: {
         my_Position: {
           size: 2,

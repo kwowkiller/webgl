@@ -1,9 +1,13 @@
+import { Matrix4, Vector2, Vector3 } from "three";
+
 export interface Point {
   x: number;
   y: number;
   z?: number;
   w?: number;
 }
+
+export type Triangle = [Point, Point, Point];
 
 // 坐标系工具
 export default class Coordinate {
@@ -56,8 +60,36 @@ export default class Coordinate {
     }
   }
 
+  /*
+   判断点是否在三角形内，利用的是向量叉乘，判断点与三角形边的位置
+   如果点在三条边的同一侧，则认为点在三角形内部，利用向量的叉乘判断点在哪一侧
+   */
+  static inTriangle(p: Point, [p1, p2, p3]: Triangle) {
+    // 按三角形三个点的顺序依次和p点做叉乘，得到的结果都是同正或同负，说明点在三角形内
+    const c = [
+      this.crossProduct([p, p1, p2]),
+      this.crossProduct([p, p2, p3]),
+      this.crossProduct([p, p3, p1]),
+    ];
+    return c.every((it) => it > 0) || c.every((it) => it < 0);
+  }
+
+  // 叉乘判断p1 p2 p3三点构成的两个向量之间的关系
+  static crossProduct([p1, p2, p3]: Triangle) {
+    // p1到p2的向量
+    const a = { x: p2.x - p1.x, y: p2.y - p1.y };
+    // p1到p3的向量
+    const b = { x: p3.x - p1.x, y: p3.y - p1.y };
+    /*
+    这两个向量叉乘得到的结果，即|a|*|b|*sin(夹角)，因为a模b模都是长度为正
+    只有sin(夹角)的正负会影响到叉乘结果的正负，所以可以用叉乘的正方判断夹角的方向
+    */
+    // 向量b在向量a的哪边，正为逆时针(左边)，负为顺时针(右边)
+    return a.x * b.y - a.y * b.x;
+  }
+
   // 鼠标坐标转为webgl坐标
-  mouseToWebGL(event: React.MouseEvent) {
+  mouseToWebGL(event: { clientX: number; clientY: number }) {
     // css坐标从浏览器窗口左上角起，即clientX和clientY
     // 画布的左上角相对于浏览器窗口的左上角的位置，即left和top
     // 构成向量 [clientX,clientY] - [left,top]，可得到鼠标相对于画布的位置
@@ -72,10 +104,21 @@ export default class Coordinate {
     const { width, height } = this.canvas;
     const [x, y] = [-width / 2 + cssX, height / 2 - cssY];
     // 最后，因为webgl坐标系范围是-1 ~ 1，所以对x,y进行缩放，得到最终结果
-    return {
-      x: x / (width / 2),
-      y: y / (height / 2),
-    };
+    return new Vector2(x / (width / 2), y / (height / 2));
+  }
+
+  // 鼠标位置转世界坐标
+  getWorldPosition(
+    event: { clientX: number; clientY: number },
+    pvMatrix: Matrix4
+  ) {
+    const { clientX, clientY } = event;
+    const [hw, hh] = [this.w / 2, this.h / 2];
+    // 裁剪空间位
+    const cp = new Vector3((clientX - hw) / hw, -(clientY - hh) / hh, 0);
+    // 鼠标在世界坐标系中的位置
+    const p = cp.applyMatrix4(pvMatrix.clone().invert());
+    return new Vector2(p.x, p.y);
   }
 
   // 鼠标是否接近某个点

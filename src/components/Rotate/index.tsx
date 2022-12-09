@@ -5,19 +5,21 @@ import frag from "./fragment.frag";
 import Polygon from "../../api/polygon";
 
 let webgl: WebGL;
+let program: WebGLProgram;
 let degree = 0;
 let radius = 200;
 let scale = 1;
 
 function circlePoint() {
   const gl = webgl.ctx;
-  const isCircle = gl.getUniformLocation(webgl.program!, "is_Circle");
+  gl.useProgram(program);
+  const isCircle = gl.getUniformLocation(program, "is_Circle");
   gl.uniform1f(isCircle, 1);
   // 处理y轴比例不一致问题
-  const myRatio = gl.getUniformLocation(webgl.program!, "my_Ratio");
+  const myRatio = gl.getUniformLocation(program, "my_Ratio");
   gl.uniform1f(myRatio, webgl.coordinate.ratio);
-  const myDeg = gl.getUniformLocation(webgl.program!, "my_Deg");
-  const myRadius = gl.getUniformLocation(webgl.program!, "my_Radius");
+  const myDeg = gl.getUniformLocation(program, "my_Deg");
+  const myRadius = gl.getUniformLocation(program, "my_Radius");
   gl.uniform1f(myDeg, degree + Math.PI);
   gl.uniform1f(myRadius, webgl.coordinate.px2gl({ w: radius }).w);
   gl.drawArrays(gl.POINTS, 0, 1);
@@ -26,11 +28,11 @@ function circlePoint() {
 // lenght 三角形的边长
 function rotateTriangle() {
   const gl = webgl.ctx;
-  const isCircle = gl.getUniformLocation(webgl.program!, "is_Circle");
+  const isCircle = gl.getUniformLocation(program, "is_Circle");
   gl.uniform1f(isCircle, 0);
   const polygon = new Polygon({
     gl,
-    program: webgl.program!,
+    program: program,
     attrs: {
       my_Position: {
         size: 2,
@@ -46,7 +48,7 @@ function rotateTriangle() {
       h * Math.sin(degree + index * ((Math.PI * 2) / 3)) * scale,
     ];
   });
-  polygon.draw(false);
+  polygon.draw();
 }
 let shrink = true;
 function App() {
@@ -54,7 +56,7 @@ function App() {
   useEffect(() => {
     const canvas = ref.current!;
     webgl = new WebGL(canvas);
-    webgl.initShaders(vert, frag);
+    program = webgl.createProgram(vert, frag);
     (function anime() {
       degree += 0.005;
       if (scale <= 0) {

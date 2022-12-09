@@ -9,6 +9,7 @@ import Shape from "../../api/shape";
 import { Point } from "../../api/coordinate";
 
 let webgl: WebGL;
+let program: WebGLProgram;
 let polygon: Polygon;
 
 /* x,z 方向的空间坐标极值 */
@@ -41,7 +42,7 @@ function createVertices() {
 
 function setViewMatrix() {
   const gl = webgl.ctx;
-  const matrix = gl.getUniformLocation(webgl.program!, "my_ViewMatrix");
+  const matrix = gl.getUniformLocation(program, "my_ViewMatrix");
   gl.uniformMatrix4fv(
     matrix,
     false,
@@ -78,10 +79,10 @@ function App() {
   useEffect(() => {
     const canvas = ref.current!;
     webgl = new WebGL(canvas);
-    webgl.initShaders(vert, frag);
+    program = webgl.createProgram(vert, frag);
     polygon = new Polygon({
       gl: webgl.ctx,
-      program: webgl.program!,
+      program: program,
       attrs: {
         my_Position: {
           size: 3,

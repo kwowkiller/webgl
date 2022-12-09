@@ -6,6 +6,7 @@ import Polygon from "../../api/polygon";
 import { Point } from "../../api/coordinate";
 
 let webgl: WebGL;
+let program: WebGLProgram;
 // 多边形容器
 const container: Polygon[] = [];
 // 正在绘制的多边形
@@ -43,7 +44,7 @@ function App() {
   useEffect(() => {
     const canvas = ref.current!;
     webgl = new WebGL(canvas);
-    webgl.initShaders(vert, frag);
+    program = webgl.createProgram(vert, frag);
     // (function render() {
     //   draw();
     //   requestAnimationFrame(render);
@@ -67,7 +68,7 @@ function App() {
           if (!polygon) {
             polygon = new Polygon({
               gl: webgl.ctx,
-              program: webgl.program!,
+              program: program,
               attrs: {
                 my_Position: {
                   size: 2,

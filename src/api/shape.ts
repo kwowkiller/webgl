@@ -1,39 +1,10 @@
-import { Point } from "./coordinate";
-
-type Triangle = [Point, Point, Point];
+import Coordinate, { Point, Triangle } from "./coordinate";
 
 export default class Shape {
   points: Point[];
   triangles: Triangle[] = [];
   constructor(points: Point[]) {
     this.points = [...points];
-  }
-  /*
-   判断点是否在三角形内，利用的是向量叉乘，判断点与三角形边的位置
-   如果点在三条边的同一侧，则认为点在三角形内部，利用向量的叉乘判断点在哪一侧
-   */
-  inTriangle(p: Point, [p1, p2, p3]: Triangle) {
-    // 按三角形三个点的顺序依次和p点做叉乘，得到的结果都是同正或同负，说明点在三角形内
-    const c = [
-      this.crossProduct([p, p1, p2]),
-      this.crossProduct([p, p2, p3]),
-      this.crossProduct([p, p3, p1]),
-    ];
-    return c.every((it) => it > 0) || c.every((it) => it < 0);
-  }
-
-  // 叉乘判断p1 p2 p3三点构成的两个向量之间的关系
-  crossProduct([p1, p2, p3]: Triangle) {
-    // p1到p2的向量
-    const a = { x: p2.x - p1.x, y: p2.y - p1.y };
-    // p1到p3的向量
-    const b = { x: p3.x - p1.x, y: p3.y - p1.y };
-    /*
-    这两个向量叉乘得到的结果，即|a|*|b|*sin(夹角)，因为a模b模都是长度为正
-    只有sin(夹角)的正负会影响到叉乘结果的正负，所以可以用叉乘的正方判断夹角的方向
-    */
-    // 向量b在向量a的哪边，正为逆时针(左边)，负为顺时针(右边)
-    return a.x * b.y - a.y * b.x;
   }
 
   // 将一系列点构成的封闭图形分解成三角形
@@ -54,9 +25,9 @@ export default class Shape {
     const notInside = [
       ...points.slice(0, index + 1),
       ...points.slice(index + 3, points.length),
-    ].every((p) => !this.inTriangle(p, triangle));
+    ].every((p) => !Coordinate.inTriangle(p, triangle));
     // 这个三角形的顶点指向另外两点的向量，a和b，b在a的左侧
-    const leftSide = this.crossProduct(triangle) < 0;
+    const leftSide = Coordinate.crossProduct(triangle) < 0;
     if (notInside && leftSide) {
       // 如果都不在，将该三角形添加到triangles集合，并删掉points中该三角形的第二个点
       this.triangles.push(triangle);

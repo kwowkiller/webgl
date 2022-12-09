@@ -5,17 +5,18 @@ import frag from "./fragment.frag";
 import Polygon from "../../api/polygon";
 
 let webgl: WebGL;
+let program: WebGLProgram;
 
 function App() {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     const canvas = ref.current!;
     webgl = new WebGL(canvas);
-    webgl.initShaders(vert, frag);
+    program = webgl.createProgram(vert, frag);
 
     const polygon = new Polygon({
       gl: webgl.ctx,
-      program: webgl.program!,
+      program: program,
       attrs: {
         my_Position: {
           size: 2,
