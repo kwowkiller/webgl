@@ -11,6 +11,7 @@ interface Attrs {
   [key: string]: {
     size: number;
     offset?: number;
+    data: Array<number>;
   };
 }
 interface Uniforms {
@@ -24,8 +25,6 @@ export default class Polygon {
   gl: WebGLRenderingContext;
   program: WebGLProgram;
   modes: PolygonMode[];
-  // 为了方便操作顶点，使用二维数组，也可以直接传入原数据data
-  vertices: number[][] = [];
   // 顶点顺序索引
   indices?: Uint8Array;
   attrs: Attrs;
@@ -38,19 +37,17 @@ export default class Polygon {
     wrapT?: number;
     uniform: string;
   }[] = [];
-
-  private data: Float32Array;
   // 顶点缓存
   private verticesBuffer?: WebGLBuffer;
   // 顶点索引缓存
   private indicesBuffer?: WebGLBuffer;
 
+  data: Float32Array = new Float32Array();
+
   constructor(params: {
     gl: WebGLRenderingContext;
     program: WebGLProgram;
-    vertices?: number[][];
     indices?: Uint8Array;
-    data?: Float32Array;
     attrs: Attrs;
     uniforms?: Uniforms;
     modes?: PolygonMode[];
@@ -59,9 +56,7 @@ export default class Polygon {
       gl,
       program,
       modes = ["POINTS"],
-      vertices = [],
       indices,
-      data,
       attrs,
       uniforms = {},
     } = params;
@@ -70,30 +65,25 @@ export default class Polygon {
     this.modes = modes;
     this.attrs = attrs;
     this.uniforms = uniforms;
-    if (data) {
-      this.data = data;
-    } else {
-      this.vertices = vertices;
-      this.data = new Float32Array(this.vertices.flat());
-    }
     this.indices = indices;
     this.init();
   }
 
+  // 单个顶点包含的数据长度，比如点(1,1,1,1,0,0,1)，前三个是顶点数据xyz，后四个是颜色数据rgba，长度为7
   get size() {
     return Object.values(this.attrs)
       .map((a) => a.size)
       .reduce((p, c) => p + c);
   }
 
+  // 顶点个数
+  get count() {
+    const attr = Object.values(this.attrs)[0];
+    return attr.data.length / attr.size;
+  }
+
   private init() {
-    const {
-      gl,
-      program,
-      attrs,
-      indices,
-      data: { BYTES_PER_ELEMENT },
-    } = this;
+    const { gl, program, attrs, indices } = this;
     gl.useProgram(this.program);
     if (!this.verticesBuffer) {
       this.verticesBuffer = gl.createBuffer()!;
@@ -106,6 +96,8 @@ export default class Polygon {
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indicesBuffer);
     }
     // this.bufferData();
+    // 固定值 4
+    const { BYTES_PER_ELEMENT } = new Float32Array();
     for (const key in attrs) {
       const { size, offset = 0 } = attrs[key];
       const _attr = gl.getAttribLocation(program, key);
@@ -122,11 +114,19 @@ export default class Polygon {
   }
 
   private bufferData() {
-    const { gl, vertices, indices } = this;
-    // 更新data数组
-    if (vertices.length > 0) {
-      this.data = new Float32Array(vertices.flat());
+    const { gl, indices, attrs } = this;
+    const source = new Array(this.size * this.count);
+    for (const key in attrs) {
+      const { data, size, offset = 0 } = attrs[key];
+      for (let i = 0; i < this.count; i++) {
+        source.splice(
+          i * this.size + offset,
+          size,
+          ...data.slice(i * size, i * size + size)
+        );
+      }
     }
+    this.data = new Float32Array(source);
     if (indices && indices.length > 0) {
       gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
     }

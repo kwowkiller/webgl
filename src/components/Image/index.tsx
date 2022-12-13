@@ -75,6 +75,12 @@ function App() {
         attrs: {
           my_Position: {
             size: 2,
+            data: [
+              ...vertices[0],
+              ...vertices[1],
+              ...vertices[2],
+              ...vertices[3],
+            ],
           },
         },
         uniforms: {
@@ -87,12 +93,6 @@ function App() {
             args: [false, modelMatrix.elements],
           },
         },
-        vertices: [
-          [...vertices[0]],
-          [...vertices[1]],
-          [...vertices[2]],
-          [...vertices[3]],
-        ],
         indices: new Uint8Array([0, 1, 3, 2]),
         modes: ["POINTS", "LINE_LOOP"],
       });
@@ -103,10 +103,17 @@ function App() {
         attrs: {
           my_Position: {
             size: 2,
+            data: [
+              ...vertices[0],
+              ...vertices[1],
+              ...vertices[2],
+              ...vertices[3],
+            ],
           },
           my_Pin: {
             size: 2,
             offset: 2,
+            data: [0, 1, 0, 0, 1, 1, 1, 0],
           },
         },
         uniforms: {
@@ -119,12 +126,6 @@ function App() {
             args: [false, modelMatrix.elements],
           },
         },
-        vertices: [
-          [...vertices[0], 0, 1],
-          [...vertices[1], 0, 0],
-          [...vertices[2], 1, 1],
-          [...vertices[3], 1, 0],
-        ],
         modes: ["TRIANGLE_STRIP"],
       });
       polygonImage.textures.push({
@@ -139,7 +140,8 @@ function App() {
       ref={ref}
       style={{ background: "#000" }}
       onMouseMove={(event) => {
-        const mouse = webgl.coordinate.getWorldPosition(event, pvMatrix);
+        const { x, y } = webgl.coordinate.getWorldPosition(event, pvMatrix);
+        const mouse = new Vector2(x, y);
         switch (state) {
           case "pan": {
             dragEnd.copy(mouse);
@@ -169,7 +171,8 @@ function App() {
         }
       }}
       onMouseDown={(event) => {
-        const mouse = webgl.coordinate.getWorldPosition(event, pvMatrix);
+        const { x, y } = webgl.coordinate.getWorldPosition(event, pvMatrix);
+        const mouse = new Vector2(x, y);
         if (mouseInImage(mouse)) {
           state = "pan";
           dragStart.copy(mouse);
@@ -188,6 +191,10 @@ function App() {
         updateVertices();
         state = "none";
       }}
+      onWheel={({ deltaY }) => {
+        draw({ zoom: deltaY });
+        updateVertices();
+      }}
     ></canvas>
   );
 }
@@ -203,19 +210,11 @@ function updateVertices() {
   panMatrix.elements[12] = 0;
   panMatrix.elements[13] = 0;
   rotateMatrix.makeRotationZ(0);
+  zoomMatrix.makeScale(1, 1, 1);
   //  更新顶点信息
-  polygonBorder.vertices = [
-    [...vertices[0]],
-    [...vertices[1]],
-    [...vertices[2]],
-    [...vertices[3]],
-  ];
-  polygonImage.vertices = [
-    [...vertices[0], 0, 1],
-    [...vertices[1], 0, 0],
-    [...vertices[2], 1, 1],
-    [...vertices[3], 1, 0],
-  ];
+  const copy = [...vertices[0], ...vertices[1], ...vertices[2], ...vertices[3]];
+  polygonBorder.attrs.my_Position.data = copy;
+  polygonImage.attrs.my_Position.data = copy;
 }
 
 // 鼠标是否在图片里，将图片分成两个三角形，判断点是否在三角形内
@@ -279,22 +278,38 @@ function getRotateCenter() {
 
 const panMatrix = new Matrix4();
 const rotateMatrix = new Matrix4();
-function draw(params: { panOffset?: Vector2; angle?: number } = {}) {
+const zoomMatrix = new Matrix4();
+function draw(
+  params: { panOffset?: Vector2; angle?: number; zoom?: number } = {}
+) {
   const m1 = new Matrix4();
   const m2 = new Matrix4();
-  let { panOffset, angle = 0 } = params;
+  const center = getRotateCenter();
+  m1.setPosition(center.x, center.y, 0);
+  m2.setPosition(-center.x, -center.y, 0);
+
+  let { panOffset, angle, zoom } = params;
   if (panOffset) {
     panMatrix.elements[12] += panOffset.x;
     panMatrix.elements[13] += panOffset.y;
   }
   if (angle) {
     rotateMatrix.makeRotationZ(angle);
-    const center = getRotateCenter();
-    m1.setPosition(center.x, center.y, 0);
-    m2.setPosition(-center.x, -center.y, 0);
+  }
+  if (zoom) {
+    if (zoom < 0) {
+      zoomMatrix.makeScale(1.01, 1.01, 1);
+    } else {
+      zoomMatrix.makeScale(0.99, 0.99, 1);
+    }
   }
   modelMatrix.copy(
-    m1.clone().multiply(panMatrix).multiply(rotateMatrix).multiply(m2)
+    m1
+      .clone()
+      .multiply(panMatrix)
+      .multiply(rotateMatrix)
+      .multiply(zoomMatrix)
+      .multiply(m2)
   );
   polygonBorder.draw();
   polygonImage.draw();

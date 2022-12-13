@@ -25,12 +25,12 @@ function getAccessPoint(event: React.MouseEvent) {
   // 遍历所有点判断鼠标是靠近某个点
   for (let i = 0; i < container.length; i++) {
     if (access) break;
-    const vertices = container[i].vertices;
-    for (let j = 0; j < vertices.length; j++) {
+    const vertices = container[i].attrs.my_Position.data;
+    for (let j = 0; j < vertices.length; j += 2) {
       // 过滤掉当正在绘制的多边形的最后一个点
       if (polygon === container[i] && j === vertices.length - 1) continue;
       access = webgl.coordinate.mouseApproach(
-        { x: vertices[j][0], y: vertices[j][1] },
+        { x: vertices[j], y: vertices[j + 1] },
         event
       );
       if (access) break;
@@ -58,8 +58,8 @@ function App() {
       onMouseDown={(event) => {
         // 鼠标右键
         if (event.button === 2) {
-          // 移除最后一个点
-          polygon?.vertices.pop();
+          // 移除最后一个点（xy两个元素）
+          polygon?.attrs.my_Position.data.splice(-2, 2);
           polygon = null;
         } else {
           // 如果离某个点很近，直接使用该点
@@ -70,20 +70,17 @@ function App() {
               gl: webgl.ctx,
               program: program,
               attrs: {
+                // 初次点击时创建两个点，一个固定点，一个随鼠标移动点
                 my_Position: {
                   size: 2,
+                  data: [x, y, x, y],
                 },
               },
               modes: ["POINTS", "LINE_STRIP"],
-              // 初次点击时创建两个点，一个固定点，一个随鼠标移动点
-              vertices: [
-                [x, y],
-                [x, y],
-              ],
             });
             container.push(polygon);
           } else {
-            polygon.vertices.push([x, y]);
+            polygon.attrs.my_Position.data.push(x, y);
           }
         }
         draw();
@@ -95,7 +92,7 @@ function App() {
         if (!polygon) return;
         // 如果靠近某个点，直接连到这个点
         const { x, y } = access || webgl.coordinate.mouseToWebGL(event);
-        polygon.vertices[polygon.vertices.length - 1] = [x, y];
+        polygon.attrs.my_Position.data.splice(-2, 2, x, y);
         draw();
       }}
     ></canvas>

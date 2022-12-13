@@ -31,11 +31,22 @@ function App() {
       attrs: {
         my_Position: {
           size: 2,
-          offset: 0,
+          data: [
+            [-1, 1],
+            [-1, -1],
+            [1, 1],
+            [1, -1],
+          ].flat(),
         },
         my_Pin: {
           size: 2,
           offset: 2,
+          data: [
+            [0, 1],
+            [0, 0],
+            [1, 1],
+            [1, 0],
+          ].flat(),
         },
       },
       uniforms: {
@@ -52,12 +63,6 @@ function App() {
           args: [canvas.width, canvas.height],
         },
       },
-      vertices: [
-        [-1, 1, 0, 1],
-        [-1, -1, 0, 0],
-        [1, 1, 1, 1],
-        [1, -1, 1, 0],
-      ],
       modes: ["TRIANGLE_STRIP"],
     });
   }, []);

@@ -16,6 +16,10 @@ body {
   align-items: center;
 }
 
+#webpack-dev-server-client-overlay{
+  display: none;
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;

@@ -36,18 +36,22 @@ function rotateTriangle() {
     attrs: {
       my_Position: {
         size: 2,
+        data: [],
       },
     },
     modes: ["TRIANGLES"],
   });
   const { w, h } = webgl.coordinate.px2gl({ w: radius, h: radius });
   // 三条边每条分别旋转0度，120度，240度，构成等边三角形
-  polygon.vertices = new Array(3).fill(0).map((_, index) => {
-    return [
-      w * Math.cos(degree + index * ((Math.PI * 2) / 3)) * scale,
-      h * Math.sin(degree + index * ((Math.PI * 2) / 3)) * scale,
-    ];
-  });
+  polygon.attrs.my_Position.data = new Array(3)
+    .fill(0)
+    .map((_, index) => {
+      return [
+        w * Math.cos(degree + index * ((Math.PI * 2) / 3)) * scale,
+        h * Math.sin(degree + index * ((Math.PI * 2) / 3)) * scale,
+      ];
+    })
+    .flat();
   polygon.draw();
 }
 let shrink = true;

@@ -56,18 +56,24 @@ function setViewMatrix() {
 
 // 用正弦函数操作数据
 function updateVertices(offset = 0) {
-  const { vertices } = polygon;
-  for (let i = 0; i < vertices.length; i++) {
-    const [x, y, z, r, g, b, a] = vertices[i];
+  const vertices = polygon.attrs.my_Position.data;
+  for (let i = 0; i < vertices.length; i += 3) {
+    const x = vertices[i];
+    const z = vertices[i + 2];
     const angle = scaleZ(z);
     const A = Math.sin(angle) * 0.01 + 0.03;
     const phi = scaleX(x) + offset;
     // const phi = x + offset;
     // 改变y轴位置
-    vertices[i][1] = sin(A, 2, phi)(angle);
+    vertices[i + 1] = sin(A, 2, phi)(angle);
+  }
+  const colors = polygon.attrs.my_Color.data;
+  for (let i = 0; i < colors.length; i += 4) {
+    const x = vertices[(i / 4) * 3];
+    const z = vertices[(i / 4) * 3 + 2];
     // 改变颜色
-    vertices[i][3] = Math.sin(z);
-    vertices[i][4] = Math.sin(x);
+    colors[i] = Math.sin(z);
+    colors[i + 0] = Math.sin(x);
   }
   polygon.draw();
 }
@@ -80,6 +86,7 @@ function App() {
     const canvas = ref.current!;
     webgl = new WebGL(canvas);
     program = webgl.createProgram(vert, frag);
+    const vertices = createVertices();
     polygon = new Polygon({
       gl: webgl.ctx,
       program: program,
@@ -87,14 +94,14 @@ function App() {
         my_Position: {
           size: 3,
           offset: 0,
+          data: vertices.map((v) => v.slice(0, 3)).flat(),
         },
         my_Color: {
           size: 4,
           offset: 3,
+          data: vertices.map((v) => v.slice(3)).flat(),
         },
       },
-      // x轴的宽度算出每一x轴有多少个点
-      vertices: createVertices(),
       modes: ["POINTS", "LINES", "TRIANGLES"],
     });
     setViewMatrix();

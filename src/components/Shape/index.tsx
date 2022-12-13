@@ -23,6 +23,11 @@ function square(width: number) {
     attrs: {
       my_Position: {
         size: 2,
+        // 按2-3-4-1象限的顺序
+        data: [2, 3, 4, 1, 2]
+          .map((q) => coordinate.quadrantChange(point, q))
+          .map((p) => [p.x, p.y])
+          .flat(),
       },
     },
     uniforms: {
@@ -32,10 +37,6 @@ function square(width: number) {
       },
     },
     modes: ["POINTS", "LINE_STRIP"],
-    // 按2-3-4-1象限的顺序
-    vertices: [2, 3, 4, 1, 2]
-      .map((q) => coordinate.quadrantChange(point, q))
-      .map((p) => [p.x, p.y]),
   });
   polygon.draw(false);
 }
@@ -65,14 +66,12 @@ async function spiral() {
     attrs: {
       my_Position: {
         size: 2,
+        data: points.map((p) => [p.x, p.y]).flat()
       },
     },
     modes: ["POINTS", "LINE_STRIP"],
-    vertices: points.map((p) => [p.x, p.y]),
   });
   polygon.draw(false);
-  //
-  polygon.vertices = [];
   const triangles: Point[] = [];
   new Shape(points).resolve().forEach((t) => {
     triangles.push(...t);
@@ -88,7 +87,7 @@ async function spiral() {
       Math.random(),
       1
     );
-    polygon.vertices = triangles.slice(i, i + 3).map((p) => [p.x, p.y]);
+    polygon.attrs.my_Position.data = triangles.slice(i, i + 3).map((p) => [p.x, p.y]).flat();
     // polygon.vertices.push(...triangles.slice(i, i + 3).map((p) => [p.x, p.y]));
     polygon.draw(false);
     // await new Promise<void>((resolve) => setTimeout(() => resolve(), 3000));

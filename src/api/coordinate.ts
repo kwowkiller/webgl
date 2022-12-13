@@ -117,8 +117,7 @@ export default class Coordinate {
     // 裁剪空间位
     const cp = new Vector3((clientX - hw) / hw, -(clientY - hh) / hh, 0);
     // 鼠标在世界坐标系中的位置
-    const p = cp.applyMatrix4(pvMatrix.clone().invert());
-    return new Vector2(p.x, p.y);
+    return cp.applyMatrix4(pvMatrix.clone().invert());
   }
 
   // 鼠标是否接近某个点

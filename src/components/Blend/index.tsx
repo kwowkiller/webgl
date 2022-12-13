@@ -7,13 +7,6 @@ import { Track } from "../../api/anime";
 
 let webgl: WebGL;
 let program: WebGLProgram;
-// prettier-ignore
-const source = new Float32Array([
-  -0.4, 0.8, 0, 1,
-  -0.4, -0.8, 0, 0,
-  0.4, 0.8, 1, 1,
-  0.4, -0.8, 1, 0,
-]);
 
 function App() {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -27,14 +20,20 @@ function App() {
       attrs: {
         my_Position: {
           size: 2,
-          offset: 0,
+          // prettier-ignore
+          data: [
+            -0.4, 0.8,
+            -0.4, -0.8,
+            0.4, 0.8,
+            0.4, -0.8,
+          ],
         },
         my_Pin: {
           size: 2,
           offset: 2,
+          data: [0, 1, 0, 0, 1, 1, 1, 0],
         },
       },
-      data: source,
       modes: ["TRIANGLE_STRIP"],
     });
 

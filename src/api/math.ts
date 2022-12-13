@@ -25,3 +25,20 @@ export function d2r(d: number) {
 export function r2d(r: number) {
   return (r / Math.PI) * 180;
 }
+
+export function separate(
+  arr: number[],
+  attrs: { size: number; offset: number }[]
+) {
+  const result: number[][] = attrs.map(() => []);
+  const rowSize = attrs.map((item) => item.size).reduce((p, c) => p + c);
+  for (let i = 0; i < arr.length; i += rowSize) {
+    const row = arr.slice(i, i + rowSize);
+    attrs.forEach(({ offset, size }, index) => {
+      const start = offset;
+      const end = start + size;
+      result[index].push(...row.slice(start, end));
+    });
+  }
+  return result;
+}

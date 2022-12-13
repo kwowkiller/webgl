@@ -293,6 +293,12 @@ function createTriangle(color: number[], modelView: Matrix4) {
     attrs: {
       my_Position: {
         size: 3,
+        // prettier-ignore
+        data: [
+          0, 0.3, 0, 
+          -0.3, -0.3, 0, 
+          0.3, -0.3, 0
+        ],
       },
     },
     uniforms: {
@@ -310,12 +316,6 @@ function createTriangle(color: number[], modelView: Matrix4) {
         args: [false, projection.elements],
       },
     },
-    // prettier-ignore
-    data: new Float32Array([
-      0, 0.3, 0, 
-      -0.3, -0.3, 0, 
-      0.3, -0.3, 0
-    ]),
     modes: ["TRIANGLES"],
   });
 }

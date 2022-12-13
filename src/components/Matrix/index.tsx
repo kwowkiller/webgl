@@ -20,14 +20,14 @@ function App() {
       attrs: {
         my_Position: {
           size: 2,
+          data: [
+            [-0.1, 0.1],
+            [-0.1, -0.1],
+            [0.1, 0.1],
+            [0.1, -0.1],
+          ].flat(),
         },
       },
-      vertices: [
-        [-0.1, 0.1],
-        [-0.1, -0.1],
-        [0.1, 0.1],
-        [0.1, -0.1],
-      ].map(([x, y]) => [x, y]),
       modes: ["TRIANGLE_STRIP"],
     });
     polygon.draw();

@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Vector3, Matrix4, Vector4 } from "three";
+import { Vector3, Matrix4 } from "three";
 import WebGL from "../../api/webgl";
 import vert from "./vertex.vert";
 import frag from "./fragment.frag";
 import Polygon from "../../api/polygon";
+import { separate } from "../../api/math";
 
 let webgl: WebGL;
 let program: WebGLProgram;
@@ -12,7 +13,7 @@ let theta = 0;
 
 //数据源
 // prettier-ignore
-const source = new Float32Array([
+const source = [
   // back
   -0.5, -0.5, -0.5, 0, 0,
   -0.5, 0.5, -0.5, 0, 0.5,
@@ -55,7 +56,7 @@ const source = new Float32Array([
   0.5, -0.5, 0.5, 0.5, 1,
   0.5, 0.5, -0.5, 0.75, 0.5,
   0.5, 0.5, 0.5, 0.75, 1,
-]);
+];
 
 function App() {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -76,19 +77,24 @@ function App() {
     program = webgl.createProgram(vert, frag);
     webgl.ctx.enable(webgl.ctx.CULL_FACE);
     webgl.ctx.enable(webgl.ctx.DEPTH_TEST);
+    const [position, pin] = separate(source, [
+      { size: 3, offset: 0 },
+      { size: 2, offset: 3 },
+    ]);
     polygon = new Polygon({
       gl: webgl.ctx,
       program: program,
       attrs: {
         my_Position: {
           size: 3,
+          data: position,
         },
         my_Pin: {
           size: 2,
           offset: 3,
+          data: pin,
         },
       },
-      data: source,
       modes: ["TRIANGLES"],
     });
 
@@ -115,10 +121,7 @@ function App() {
 
       (function anime() {
         // theta += 0.01;
-        const modelMatrix = polygon.gl.getUniformLocation(
-         program,
-          "my_Model"
-        );
+        const modelMatrix = polygon.gl.getUniformLocation(program, "my_Model");
         polygon.gl.uniformMatrix4fv(
           modelMatrix,
           false,
@@ -131,10 +134,7 @@ function App() {
     };
   }, []);
   useEffect(() => {
-    const viewMatrix = polygon.gl.getUniformLocation(
-     program,
-      "my_Camera"
-    );
+    const viewMatrix = polygon.gl.getUniformLocation(program, "my_Camera");
     const { x, y, z, u, v, w, r, s, t } = camera;
     polygon.gl.uniformMatrix4fv(
       viewMatrix,
