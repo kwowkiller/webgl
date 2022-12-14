@@ -17,7 +17,7 @@ body {
 }
 
 #webpack-dev-server-client-overlay{
-  display: none;
+  /* display: none; */
 }
 
 code {

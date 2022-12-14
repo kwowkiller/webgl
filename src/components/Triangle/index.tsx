@@ -28,7 +28,7 @@ function getAccessPoint(event: React.MouseEvent) {
     const vertices = container[i].attrs.my_Position.data;
     for (let j = 0; j < vertices.length; j += 2) {
       // 过滤掉当正在绘制的多边形的最后一个点
-      if (polygon === container[i] && j === vertices.length - 1) continue;
+      if (polygon === container[i] && j === vertices.length - 2) continue;
       access = webgl.coordinate.mouseApproach(
         { x: vertices[j], y: vertices[j + 1] },
         event

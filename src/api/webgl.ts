@@ -16,10 +16,16 @@ export default class WebGL {
     this.canvas = canvas;
     this.ctx = canvas.getContext("webgl")!;
     this.coordinate = new Coordinate(canvas);
+    const gl = this.ctx;
+    gl.clearColor(0, 0, 0, 1);
     // 开启颜色合成，否则不显示透明颜色
-    this.ctx.enable(this.ctx.BLEND);
+    gl.enable(gl.BLEND);
     // 合成算法设置，不同的算法，出来的结果可能很不一样
-    this.ctx.blendFunc(this.ctx.SRC_ALPHA, this.ctx.ONE_MINUS_SRC_ALPHA);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    // 开启深度检查
+    this.ctx.enable(gl.DEPTH_TEST);
+    //对纹理图像垂直翻转，扫描图片时，以左下角为(0,0)，右上角为(1,1)扫描
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
   }
 
   createProgram(vs: string, fs: string) {

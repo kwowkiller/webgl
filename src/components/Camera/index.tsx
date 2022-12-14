@@ -298,7 +298,7 @@ function createTriangle(color: number[], modelView: Matrix4) {
           0, 0.3, 0, 
           -0.3, -0.3, 0, 
           0.3, -0.3, 0
-        ],
+        ]
       },
     },
     uniforms: {

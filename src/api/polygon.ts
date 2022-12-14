@@ -21,6 +21,16 @@ interface Uniforms {
   };
 }
 
+interface Texture {
+  image: any;
+  wrapS?: number;
+  wrapT?: number;
+  uniform: string;
+  params?: [number, number][];
+  mipmap?: boolean;
+  texture?: WebGLTexture;
+}
+
 export default class Polygon {
   gl: WebGLRenderingContext;
   program: WebGLProgram;
@@ -29,14 +39,7 @@ export default class Polygon {
   indices?: Uint8Array;
   attrs: Attrs;
   uniforms: Uniforms;
-  textures: {
-    image: any;
-    pname?: number;
-    param?: number;
-    wrapS?: number;
-    wrapT?: number;
-    uniform: string;
-  }[] = [];
+  textures: Texture[];
   // 顶点缓存
   private verticesBuffer?: WebGLBuffer;
   // 顶点索引缓存
@@ -50,6 +53,7 @@ export default class Polygon {
     indices?: Uint8Array;
     attrs: Attrs;
     uniforms?: Uniforms;
+    textures?: Texture[];
     modes?: PolygonMode[];
   }) {
     const {
@@ -59,12 +63,14 @@ export default class Polygon {
       indices,
       attrs,
       uniforms = {},
+      textures = [],
     } = params;
     this.gl = gl;
     this.program = program;
     this.modes = modes;
     this.attrs = attrs;
     this.uniforms = uniforms;
+    this.textures = textures;
     this.indices = indices;
     this.init();
   }
@@ -73,12 +79,13 @@ export default class Polygon {
   get size() {
     return Object.values(this.attrs)
       .map((a) => a.size)
-      .reduce((p, c) => p + c);
+      .reduce((p, c) => p + c, 0);
   }
 
   // 顶点个数
   get count() {
     const attr = Object.values(this.attrs)[0];
+    if (!attr) return 0;
     return attr.data.length / attr.size;
   }
 
@@ -146,24 +153,46 @@ export default class Polygon {
     textures.forEach((item, index) => {
       const {
         image,
-        pname = gl.TEXTURE_MIN_FILTER,
-        param = gl.LINEAR,
+        // pname = gl.TEXTURE_MIN_FILTER,
+        // param = gl.LINEAR,
+        params = [],
+        mipmap,
         uniform,
         wrapS,
         wrapT,
       } = item;
-      //对纹理图像垂直翻转，扫描图片时，以左下角为(0,0)，右上角为(1,1)扫描
-      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+      gl.uniform1i(gl.getUniformLocation(program, uniform), index);
+      // 已经绑定过纹理
+      if (item.texture) {
+        gl.bindTexture(gl.TEXTURE_2D, item.texture);
+        return;
+      }
       //纹理单元
       gl.activeTexture(gl[`TEXTURE${index}` as "TEXTURE"]);
       //纹理对象
-      const texture = gl.createTexture();
+      item.texture = gl.createTexture()!;
       //向target 绑定纹理数据
-      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.bindTexture(gl.TEXTURE_2D, item.texture);
       //配置纹理图像
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGB,
+        gl.RGB,
+        gl.UNSIGNED_BYTE,
+        image
+      );
+      if (mipmap) {
+        gl.generateMipmap(gl.TEXTURE_2D);
+      } else {
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      }
       //配置纹理参数
-      gl.texParameteri(gl.TEXTURE_2D, pname, param);
+      // if (params.length > 0) {
+      //   params.forEach(([pname, param]) =>
+      //     gl.texParameteri(gl.TEXTURE_2D, pname, param)
+      //   );
+      // }
       //非2次幂大小图像处理
       if (wrapS) {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrapS);
@@ -171,7 +200,6 @@ export default class Polygon {
       if (wrapT) {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrapT);
       }
-      gl.uniform1i(gl.getUniformLocation(program, uniform), index);
     });
   }
 
@@ -182,8 +210,8 @@ export default class Polygon {
       gl.clear(gl.COLOR_BUFFER_BIT);
     }
     this.bufferData();
-    this.activeTexture();
     this.setUniform();
+    this.activeTexture();
     for (let mode of modes) {
       if (indices && indices.length > 0) {
         gl.drawElements(gl[mode], indices.length, gl.UNSIGNED_BYTE, 0);

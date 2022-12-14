@@ -14,6 +14,7 @@ import Blend from "./components/Blend";
 import Camera from "./components/Camera";
 import Image from "./components/Image";
 import Cube2 from "./components/Cube2";
+import Floor from "./components/Floor";
 // import OBJ from "./components/OBJ";
 import reportWebVitals from "./reportWebVitals";
 import { BrowserRouter, Link, Route, Routes } from "react-router-dom";
@@ -35,6 +36,7 @@ const pages: { path: string; element: JSX.Element }[] = [
   { path: "/camera", element: <Camera /> },
   { path: "/image", element: <Image /> },
   { path: "/cube2", element: <Cube2 /> },
+  { path: "/floor", element: <Floor /> },
   // { path: "/OBJ", element: <OBJ /> },
 ];
 root.render(
