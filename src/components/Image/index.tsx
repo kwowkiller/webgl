@@ -93,7 +93,7 @@ function App() {
             args: [false, modelMatrix.elements],
           },
         },
-        indices: new Uint8Array([0, 1, 3, 2]),
+        indices: new Uint16Array([0, 1, 3, 2]),
         modes: ["POINTS", "LINE_LOOP"],
       });
 

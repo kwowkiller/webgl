@@ -190,7 +190,7 @@ const colors = [
 ];
 // 顶点索引集合
 // prettier-ignore
-const indexes = new Uint8Array([
+const indexes = new Uint16Array([
   0, 1, 2, 0, 2, 3,    // front
   0, 3, 4, 0, 4, 5,    // right
   0, 5, 6, 0, 6, 1,    // up

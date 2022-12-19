@@ -15,6 +15,8 @@ import Camera from "./components/Camera";
 import Image from "./components/Image";
 import Cube2 from "./components/Cube2";
 import Floor from "./components/Floor";
+import Axis from "./components/Axis";
+import Sphere from "./components/Sphere";
 // import OBJ from "./components/OBJ";
 import reportWebVitals from "./reportWebVitals";
 import { BrowserRouter, Link, Route, Routes } from "react-router-dom";
@@ -23,6 +25,7 @@ const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
 );
 const pages: { path: string; element: JSX.Element }[] = [
+  { path: "/axis", element: <Axis /> },
   { path: "/star", element: <Star /> },
   { path: "/triangle", element: <Triangle /> },
   { path: "/shape", element: <Shape /> },
@@ -37,6 +40,7 @@ const pages: { path: string; element: JSX.Element }[] = [
   { path: "/image", element: <Image /> },
   { path: "/cube2", element: <Cube2 /> },
   { path: "/floor", element: <Floor /> },
+  { path: "/sphere", element: <Sphere /> },
   // { path: "/OBJ", element: <OBJ /> },
 ];
 root.render(

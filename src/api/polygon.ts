@@ -36,7 +36,7 @@ export default class Polygon {
   program: WebGLProgram;
   modes: PolygonMode[];
   // 顶点顺序索引
-  indices?: Uint8Array;
+  indices?: Uint16Array;
   attrs: Attrs;
   uniforms: Uniforms;
   textures: Texture[];
@@ -50,7 +50,7 @@ export default class Polygon {
   constructor(params: {
     gl: WebGLRenderingContext;
     program: WebGLProgram;
-    indices?: Uint8Array;
+    indices?: Uint16Array;
     attrs: Attrs;
     uniforms?: Uniforms;
     textures?: Texture[];
@@ -214,7 +214,7 @@ export default class Polygon {
     this.activeTexture();
     for (let mode of modes) {
       if (indices && indices.length > 0) {
-        gl.drawElements(gl[mode], indices.length, gl.UNSIGNED_BYTE, 0);
+        gl.drawElements(gl[mode], indices.length, gl.UNSIGNED_SHORT, 0);
       } else {
         gl.drawArrays(gl[mode], 0, this.data.length / this.size);
       }

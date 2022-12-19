@@ -3,7 +3,7 @@ import WebGL from "../../api/webgl";
 import vert from "./vertex.vert";
 import frag from "./fragment.frag";
 import Polygon from "../../api/polygon";
-import { Matrix4, PerspectiveCamera, Plane, Ray, Vector3 } from "three";
+import { Matrix4, PerspectiveCamera, Ray, Vector3 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 // 画布尺寸
 const { innerWidth, innerHeight } = window;

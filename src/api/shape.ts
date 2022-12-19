@@ -1,3 +1,4 @@
+import { Matrix4, Vector3 } from "three";
 import Coordinate, { Point, Triangle } from "./coordinate";
 
 export default class Shape {
@@ -49,5 +50,80 @@ export default class Shape {
       triangles.push([points[i], points[i + 1], points[i - size + 1]]);
     }
     return triangles;
+  }
+}
+
+// 球体
+export class Sphere {
+  r: number;
+  w: number;
+  h: number;
+
+  // 球顶点 总数 x * (y-1) + 2
+  vertices: Vector3[] = [];
+  // 顶点索引
+  indices: number[] = [];
+
+  constructor(params: { r?: number; w?: number; h?: number } = {}) {
+    const { r = 1, w = 16, h = 16 } = params;
+    this.r = r;
+    this.w = w;
+    this.h = h;
+    this.createVertices();
+    this.createIndices();
+    console.log(this.vertices.length);
+    console.log(this.indices);
+  }
+
+  get data() {
+    return this.vertices.map((item) => item.toArray()).flat();
+  }
+
+  createVertices() {
+    const { r, w, h } = this;
+    const north = new Vector3().setY(r);
+    const south = new Vector3().setY(-r);
+    const angleH = Math.PI / h;
+    const angleW = (Math.PI * 2) / w;
+    for (let y = 0; y < h; y++) {
+      if (y === 0) {
+        this.vertices.push(north);
+        continue;
+      }
+      for (let x = 0; x < w; x++) {
+        this.vertices.push(
+          new Vector3()
+            .copy(north)
+            .applyAxisAngle(new Vector3(1, 0, 0), angleH * y)
+            .applyAxisAngle(new Vector3(0, 1, 0), angleW * x)
+        );
+      }
+    }
+    this.vertices.push(south);
+  }
+
+  createIndices() {
+    const { w } = this;
+    this.vertices.forEach((_, index) => {
+      if (index === 0) {
+        for (let i = 1; i <= w; i++) {
+          this.indices.push(0, i, (i % w) + 1);
+        }
+        return;
+      }
+      if (index >= this.vertices.length - 1 - w) {
+        for (let i = 1; i <= w; i++) {
+          this.indices.push(index, this.vertices.length - 1, (index % w) + 1);
+        }
+        return;
+      }
+      if (index % w === 0) {
+        this.indices.push(index, index - w + 1, index + w);
+        this.indices.push(index - w + 1, index + w, index + 1);
+        return;
+      }
+      this.indices.push(index, index + w, index + w + 1);
+      this.indices.push(index, index + 1, index + w + 1);
+    });
   }
 }
